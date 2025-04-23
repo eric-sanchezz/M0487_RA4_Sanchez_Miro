@@ -24,3 +24,7 @@ Aquest fitxer recull l’historial d’activitats, canvis i contribucions realit
 - Implementació completa del fitxer `test_gestor_grups.py` amb `unittest`.
 - Revisió i actualització final de la documentació (`README.md`, `HISTÒRIC.md`).
 - Verificació de l'estructura del projecte per pujar-lo al repositori de GitHub.
+
+### Incidència
+
+L'Héctor no ha pogut fer commit al GitHub per tant m'ha passat els arxius `README.md` i `HISTORIC.md` i he fet jo el commit des de el meu usuari.
