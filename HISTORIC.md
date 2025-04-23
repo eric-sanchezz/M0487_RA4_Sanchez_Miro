@@ -17,7 +17,6 @@ Aquest fitxer recull l’historial d’activitats, canvis i contribucions realit
 - Creació del fitxer `README.md`.
 - Creació del fitxer `HISTÒRIC.md`.
 - Disseny i estructura dels tests unitaris.
-- Creació de la carpeta `tests/`.
 
 ### Sanchez, Eric
 - Proves i depuració de la funció `intro_dades()`.
