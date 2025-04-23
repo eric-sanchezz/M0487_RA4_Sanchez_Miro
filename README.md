@@ -27,3 +27,7 @@ El projecte consisteix en una aplicació que gestiona grups musicals utilitzant 
 ## 🛠️ Instruccions d'ús
 
 Per executar l'aplicació, executarem el fitxer test_gestor_grups.py per comprovar que els mètodes funcionen correctament. Per executar el programa principal, haurem d'anar al fitxer gestor_grups.py i donar-li a executar, on s'obrirà el menú i podrem fer servir el programa.
+
+## Crèdits i autoria 
+
+Programa fet per Èric Sánchez i Héctor Miró
