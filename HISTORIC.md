@@ -19,7 +19,7 @@ Aquest fitxer recull l’historial d’activitats, canvis i contribucions realit
 - Disseny i estructura dels tests unitaris.
 - Creació de la carpeta `tests/`.
 
-### Miro, Hector
+### Sanchez, Eric
 - Proves i depuració de la funció `intro_dades()`.
 - Afegits més tests per validar la lògica de validació.
 - Implementació completa del fitxer `test_gestor_grups.py` amb `unittest`.
