@@ -19,13 +19,6 @@ Aquest fitxer recull l’historial d’activitats, canvis i contribucions realit
 - Disseny i estructura dels tests unitaris.
 - Creació de la carpeta `tests/`.
 
-## 2025-04-24
-
-### Sanchez, Eric
-- Afegides comprovacions d'errors addicionals.
-- Millora en la sortida de missatges del menú.
-- Afegida funcionalitat per consultar grups per nom.
-
 ### Miro, Hector
 - Proves i depuració de la funció `intro_dades()`.
 - Afegits més tests per validar la lògica de validació.
