@@ -5,6 +5,7 @@
 Aquest fitxer recull l’historial d’activitats, canvis i contribucions realitzades per cada membre del projecte, seguint una dinàmica de treball col·laborativa.
 
 ## 2025-04-23
+## Entorns de desenvolupament M0487 RA4
 
 ### Sanchez, Eric
 - Refactorització inicial del codi base.
