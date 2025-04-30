@@ -2,11 +2,11 @@
 
 Aplicació de Python per a la gestió de grups musicals. Aquesta aplicació permet afegir, consultar, actualitzar i eliminar grups musicals emmagatzemats en una base de dades SQLite. El projecte es basa en una estructura clara de funcions reutilitzables i ben documentades.
 
-## 📜 Descripció del projecte
+## Descripció del projecte
 
 El projecte consisteix en una aplicació que gestiona grups musicals utilitzant una base de dades SQLite. Els grups musicals poden ser afegits, actualitzats, eliminats o consultats a través d'un conjunt de funcions implementades en Python. Es fa ús de la validació de les dades d'entrada per assegurar que la informació proporcionada sigui correcta (any de creació, nombre d'integrants, tipus de música, etc.).
 
-## 🔧 Estructura del codi
+## Estructura del codi
 
 - **`gestor_grups.py`**: Conté totes les funcions de l'aplicació que interactuen amb la base de dades, com ara:
   - `afegir_grup()`: Afegir un nou grup a la base de dades.
@@ -24,7 +24,7 @@ El projecte consisteix en una aplicació que gestiona grups musicals utilitzant 
 
 - **`HISTÒRIC.md`**: Registre de canvis realitzats pel grup de desenvolupament, seguint la metodologia de treball col·laborativa amb GitHub. Aquest fitxer documenta els canvis i les tasques realitzades per cada membre del projecte.
 
-## 🛠️ Instruccions d'ús
+## Instruccions d'ús
 
 Per executar l'aplicació, executarem el fitxer test_gestor_grups.py per comprovar que els mètodes funcionen correctament. Per executar el programa principal, haurem d'anar al fitxer gestor_grups.py i donar-li a executar, on s'obrirà el menú i podrem fer servir el programa.
 
