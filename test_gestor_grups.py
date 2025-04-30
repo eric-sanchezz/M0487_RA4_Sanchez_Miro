@@ -7,18 +7,15 @@ from gestor_grups import afegir_grup, eliminar_grup, actualitzar_grup, mostrar_g
 class TestGrupsMusicals(unittest.TestCase):
     
     def setUp(self):
-        # Crea una base de dades temporal per als tests
         self.temp_dir = TemporaryDirectory()
         self.db_path = os.path.join(self.temp_dir.name, "grups_musica.db")
         crear_base_dades(self.db_path)
 
     def tearDown(self):
-        # Elimina la base de dades temporal després de cada test
         self.temp_dir.cleanup()
 
     def test_afegir_grup(self):
-        # Afegir un grup i comprovar que es troba a la base de dades
-        afegir_grup("Mishima", 2000, "pop", 5, self.db_path)  # Asegúrate de que 'pop' és vàlid
+        afegir_grup("Mishima", 2000, "pop", 5, self.db_path)  
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM grups WHERE nom = 'Mishima'")
@@ -26,8 +23,25 @@ class TestGrupsMusicals(unittest.TestCase):
         conn.close()
         self.assertEqual(len(resultat), 1)
 
+    def test_afegir_grup_invalid_tipus(self):
+        afegir_grup("Grup Desconegut", 2000, "jazz", 5, self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM grups WHERE nom = 'Grup Desconegut'")
+        resultat = cursor.fetchall()
+        conn.close()
+        self.assertEqual(len(resultat), 0) 
+
+    def test_afegir_grup_invalid_any_inici(self):
+        afegir_grup("Grup Antic", 1950, "pop", 5, self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM grups WHERE nom = 'Grup Antic'")
+        resultat = cursor.fetchall()
+        conn.close()
+        self.assertEqual(len(resultat), 0)  
+
     def test_eliminar_grup(self):
-        # Afegir un grup i després eliminar-lo, comprovant que ja no existeix
         afegir_grup("Sopa de Cabra", 1986, "trap", 4, self.db_path)
         eliminar_grup("Sopa de Cabra", self.db_path)
         conn = sqlite3.connect(self.db_path)
@@ -38,7 +52,6 @@ class TestGrupsMusicals(unittest.TestCase):
         self.assertEqual(len(resultat), 0)
 
     def test_actualitzar_grup(self):
-        # Afegir un grup i després actualitzar les seves dades
         afegir_grup("Mishima", 2000, "pop", 5, self.db_path)
         actualitzar_grup("Mishima", "Mishima 2", 2005, "pop", 6, self.db_path)
         conn = sqlite3.connect(self.db_path)
@@ -53,7 +66,6 @@ class TestGrupsMusicals(unittest.TestCase):
         self.assertEqual(resultat[0][4], 6)
 
     def test_mostrar_grups(self):
-        # Afegir un grup i comprovar que es mostra correctament
         afegir_grup("Mishima", 2000, "pop", 5, self.db_path)
         with self.assertLogs(level='INFO') as log:
             mostrar_grups(self.db_path)
