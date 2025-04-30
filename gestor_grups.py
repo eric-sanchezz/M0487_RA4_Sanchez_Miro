@@ -56,6 +56,19 @@ def intro_dades(nom=None):
 
 
 def validar_enter(missatge, condicio, error_missatge):
+    """_summary_
+
+    Args:
+        missatge (_type_): _description_
+        condicio (_type_): _description_
+        error_missatge (_type_): _description_
+
+    Raises:
+        ValueError: _description_
+
+    Returns:
+        _type_: _description_
+    """    
     """Valida que l'entrada sigui un enter i compleixi una condició."""
     while True:
         try:
