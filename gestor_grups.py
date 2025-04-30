@@ -21,32 +21,59 @@ def crear_base_dades(db_path="grups.db"):
 def intro_dades(nom=None):
     """
     Intoducció de dades per a un grup musical.
-    Retorna una tupla amb (nom, any_inici, tipus, membres) després de validar-los.
+    Si es proporciona un nom, es buscarà a la base de dades per veure si ja existeix.
+    Si existeix, es mostrarà la informació del grup trobat.
+    Si no existeix, es demanarà a l'usuari que introdueixi les dades del nou grup.
+
+    Args:
+        nom (str, opcional): Nom del grup a buscar o introduir. Per defecte, None.
+
+    Raises:
+        ValueError: Si algun dels camps introduïts no és vàlid.
+
+    Returns:
+        tuple: Una tupla amb els valors introduïts per l'usuari (nom, any_inici, tipus, membres).
     """
-    if not nom:
+    if nom:
+        resultat = consultar_grup_per_nom(nom)
+        if resultat:
+            print(f"Grup trobat: {resultat}")
+            return resultat[1], resultat[2], resultat[3], resultat[4]
+        else:
+            print(f"No s'ha trobat cap grup amb el nom '{nom}'.")
+            nom = None
+
+    while not nom:
         nom = input("Nom del grup: ").strip()
-    if not nom:
-        raise ValueError("El nom no pot estar buit.")
+        if not nom:
+            print("El nom no pot estar buit.")
 
-    try:
-        any_inici = int(input("Any d'inici (>=1960): "))
-        if any_inici < 1960:
-            raise ValueError("L'any d'inici ha de ser igual o superior a 1960.")
-    except ValueError:
-        raise ValueError("Any d'inici invàlid. Ha de ser un enter >= 1960.")
-
-    tipus = input("Tipus de música: ").strip()
-    if not tipus:
-        raise ValueError("El tipus de música no pot estar buit.")
-
-    try:
-        membres = int(input("Nombre d'integrants (>0): "))
-        if membres <= 0:
-            raise ValueError("El nombre d'integrants ha de ser superior a 0.")
-    except ValueError:
-        raise ValueError("Nombre d'integrants invàlid. Ha de ser un enter > 0.")
+    any_inici = validar_enter("Any d'inici (>=1960): ", lambda x: x >= 1960, "L'any d'inici ha de ser igual o superior a 1960.")
+    tipus = validar_text("Tipus de música: ", "El tipus de música no pot estar buit.")
+    membres = validar_enter("Nombre d'integrants (>0): ", lambda x: x > 0, "El nombre d'integrants ha de ser superior a 0.")
 
     return nom, any_inici, tipus, membres
+
+
+def validar_enter(missatge, condicio, error_missatge):
+    """Valida que l'entrada sigui un enter i compleixi una condició."""
+    while True:
+        try:
+            valor = int(input(missatge))
+            if not condicio(valor):
+                raise ValueError(error_missatge)
+            return valor
+        except ValueError as e:
+            print(f"Error: {e}")
+
+
+def validar_text(missatge, error_missatge):
+    """Valida que l'entrada sigui un text no buit."""
+    while True:
+        valor = input(missatge).strip()
+        if valor:
+            return valor
+        print(error_missatge)
 
 
 def afegir_grup(nom, any_inici, tipus, membres, db_path="grups.db"):
@@ -58,7 +85,7 @@ def afegir_grup(nom, any_inici, tipus, membres, db_path="grups.db"):
                        (nom, any_inici, tipus, membres))
         conn.commit()
         print(f"Grup '{nom}' afegit correctament.")
-    except Exception as e:
+    except sqlite3.Error as e:
         print("Error en afegir grup:", e)
     finally:
         conn.close()
@@ -75,7 +102,7 @@ def eliminar_grup(nom, db_path="grups.db"):
         else:
             print("Grup eliminat correctament.")
         conn.commit()
-    except Exception as e:
+    except sqlite3.Error as e:
         print("Error en eliminar el grup:", e)
     finally:
         conn.close()
@@ -95,7 +122,7 @@ def actualitzar_grup(nom, nou_nom, nou_any, nou_tipus, nous_membres, db_path="gr
         else:
             print("Grup actualitzat correctament.")
         conn.commit()
-    except Exception as e:
+    except sqlite3.Error as e:
         print("Error en actualitzar el grup:", e)
     finally:
         conn.close()
@@ -103,31 +130,40 @@ def actualitzar_grup(nom, nou_nom, nou_any, nou_tipus, nous_membres, db_path="gr
 
 def mostrar_grups(db_path="grups.db"):
     """Mostra tots els grups musicals emmagatzemats."""
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM grups')
-    grups = cursor.fetchall()
-    conn.close()
-
-    if grups:
-        for grup in grups:
-            print(f"ID: {grup[0]}, Nom: {grup[1]}, Any inici: {grup[2]}, Tipus: {grup[3]}, Integrants: {grup[4]}")
-    else:
-        print("No hi ha grups a la base de dades.")
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM grups')
+        grups = cursor.fetchall()
+        if grups:
+            for grup in grups:
+                print(f"ID: {grup[0]}, Nom: {grup[1]}, Any inici: {grup[2]}, Tipus: {grup[3]}, Integrants: {grup[4]}")
+        else:
+            print("No hi ha grups a la base de dades.")
+    except sqlite3.Error as e:
+        print("Error en mostrar els grups:", e)
+    finally:
+        conn.close()
 
 
 def consultar_grup_per_nom(nom, db_path="grups.db"):
     """Consulta i mostra un grup musical pel seu nom."""
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM grups WHERE nom = ?", (nom,))
-    grup = cursor.fetchone()
-    conn.close()
-
-    if grup:
-        print(f"ID: {grup[0]}, Nom: {grup[1]}, Any inici: {grup[2]}, Tipus: {grup[3]}, Integrants: {grup[4]}")
-    else:
-        print("No s'ha trobat cap grup amb aquest nom.")
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM grups WHERE nom = ?", (nom,))
+        grup = cursor.fetchone()
+        if grup:
+            print(f"ID: {grup[0]}, Nom: {grup[1]}, Any inici: {grup[2]}, Tipus: {grup[3]}, Integrants: {grup[4]}")
+            return grup
+        else:
+            print("No s'ha trobat cap grup amb aquest nom.")
+            return None
+    except sqlite3.Error as e:
+        print("Error en consultar el grup:", e)
+        return None
+    finally:
+        conn.close()
 
 
 def menu():
