@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from gestor_grups import afegir_grup, eliminar_grup, actualitzar_grup, mostrar_grups, crear_base_dades
 
 class TestGrupsMusicals(unittest.TestCase):
+    
     def setUp(self):
         # Crea una base de dades temporal per als tests
         self.temp_dir = TemporaryDirectory()
@@ -17,7 +18,7 @@ class TestGrupsMusicals(unittest.TestCase):
 
     def test_afegir_grup(self):
         # Afegir un grup i comprovar que es troba a la base de dades
-        afegir_grup("Mishima", 2000, "Indie", 5, self.db_path)
+        afegir_grup("Mishima", 2000, "pop", 5, self.db_path)  # Asegúrate de que 'pop' és vàlid
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM grups WHERE nom = 'Mishima'")
@@ -27,7 +28,7 @@ class TestGrupsMusicals(unittest.TestCase):
 
     def test_eliminar_grup(self):
         # Afegir un grup i després eliminar-lo, comprovant que ja no existeix
-        afegir_grup("Sopa de Cabra", 1986, "Rock", 4, self.db_path)
+        afegir_grup("Sopa de Cabra", 1986, "trap", 4, self.db_path)
         eliminar_grup("Sopa de Cabra", self.db_path)
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -38,8 +39,8 @@ class TestGrupsMusicals(unittest.TestCase):
 
     def test_actualitzar_grup(self):
         # Afegir un grup i després actualitzar les seves dades
-        afegir_grup("Mishima", 2000, "Indie", 5, self.db_path)
-        actualitzar_grup("Mishima", "Mishima 2", 2005, "Pop", 6, self.db_path)
+        afegir_grup("Mishima", 2000, "pop", 5, self.db_path)
+        actualitzar_grup("Mishima", "Mishima 2", 2005, "pop", 6, self.db_path)
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM grups WHERE nom = 'Mishima 2'")
@@ -48,8 +49,15 @@ class TestGrupsMusicals(unittest.TestCase):
         self.assertEqual(len(resultat), 1)
         self.assertEqual(resultat[0][1], "Mishima 2")
         self.assertEqual(resultat[0][2], 2005)
-        self.assertEqual(resultat[0][3], "Pop")
+        self.assertEqual(resultat[0][3], "pop")
         self.assertEqual(resultat[0][4], 6)
+
+    def test_mostrar_grups(self):
+        # Afegir un grup i comprovar que es mostra correctament
+        afegir_grup("Mishima", 2000, "pop", 5, self.db_path)
+        with self.assertLogs(level='INFO') as log:
+            mostrar_grups(self.db_path)
+        self.assertIn("Mishima", log.output[0])
 
 if __name__ == '__main__':
     unittest.main()

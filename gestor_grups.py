@@ -1,228 +1,200 @@
+import logging
 import sqlite3
+import os
 
+# Configura el logger
+logging.basicConfig(level=logging.INFO)
 
-def crear_base_dades(db_path="grups.db"):
-    """Crea la base de dades i la taula grups si no existeixen."""
+def crear_base_dades(db_path):
+    """
+    Aquesta funció crea la base de dades amb la taula 'grups' si no existeix.
+    La taula conté les següents columnes:
+    - id: Identificador únic per cada grup (clau primària).
+    - nom: Nom del grup musical.
+    - any_inici: Any de creació del grup.
+    - tipus: Tipus de música del grup (amb restricció per 'pop', 'trap', 'rap').
+    - integrants: Nombre d'integrants del grup.
+    """
+    if not os.path.exists(db_path):
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS grups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nom TEXT NOT NULL,
+                any_inici INTEGER,
+                tipus TEXT CHECK(tipus IN ('pop', 'trap', 'rap')),
+                integrants INTEGER
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+def validar_tipus(tipus):
+    """
+    Aquesta funció valida que el tipus de música sigui un valor permès: 'pop', 'trap' o 'rap'.
+    Si no és vàlid, mostra un missatge per terminal i retorna False.
+    """
+    if tipus not in ('pop', 'trap', 'rap'):
+        print("El tipus de música ha de ser 'pop', 'trap' o 'rap'. Intenta-ho de nou.")
+        return False
+    return True
+
+def validar_any_inici(any_inici):
+    """
+    Aquesta funció valida que l'any d'inici sigui més gran que 1960.
+    """
+    if any_inici <= 1960:
+        print("L'any d'inici ha de ser posterior a 1960. Intenta-ho de nou.")
+        return False
+    return True
+
+def afegir_grup(nom, any_inici, tipus, integrants, db_path):
+    """
+    Aquesta funció afegeix un grup a la base de dades amb els següents paràmetres:
+    - nom: Nom del grup musical.
+    - any_inici: Any de creació del grup.
+    - tipus: Tipus de música (pop, trap, rap).
+    - integrants: Nombre d'integrants del grup.
+    
+    Després d'afegir el grup, s'afegeix un registre de log per confirmar-ho.
+    """
+    # Validar el tipus de música i l'any d'inici
+    if not validar_tipus(tipus) or not validar_any_inici(any_inici):
+        return
+    
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS grups (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nom TEXT NOT NULL,
-            any_inici INTEGER NOT NULL,
-            tipus TEXT NOT NULL,
-            membres INTEGER NOT NULL
-        )
-    ''')
+    cursor.execute("""
+        INSERT INTO grups (nom, any_inici, tipus, integrants)
+        VALUES (?, ?, ?, ?)
+    """, (nom, any_inici, tipus, integrants))
     conn.commit()
     conn.close()
+    logging.info(f"Grup '{nom}' afegit correctament.")
 
-
-def intro_dades(nom=None):
+def eliminar_grup(nom, db_path):
     """
-    Intoducció de dades per a un grup musical.
-    Si es proporciona un nom, es buscarà a la base de dades per veure si ja existeix.
-    Si existeix, es mostrarà la informació del grup trobat.
-    Si no existeix, es demanarà a l'usuari que introdueixi les dades del nou grup.
-
-    Args:
-        nom (str, opcional): Nom del grup a buscar o introduir. Per defecte, None.
-
-    Raises:
-        ValueError: Si algun dels camps introduïts no és vàlid.
-
-    Returns:
-        tuple: Una tupla amb els valors introduïts per l'usuari (nom, any_inici, tipus, membres).
+    Aquesta funció elimina un grup de la base de dades mitjançant el seu nom.
+    
+    Després d'eliminar el grup, s'afegeix un registre de log per confirmar-ho.
     """
-    if nom:
-        resultat = consultar_grup_per_nom(nom)
-        if resultat:
-            print(f"Grup trobat: {resultat}")
-            return resultat[1], resultat[2], resultat[3], resultat[4]
-        else:
-            print(f"No s'ha trobat cap grup amb el nom '{nom}'.")
-            nom = None
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM grups WHERE nom = ?", (nom,))
+    conn.commit()
+    conn.close()
+    logging.info(f"Grup '{nom}' eliminat correctament.")
 
-    while not nom:
-        nom = input("Nom del grup: ").strip()
-        if not nom:
-            print("El nom no pot estar buit.")
+def actualitzar_grup(nom_antiga, nom_nova, any_inici, tipus, integrants, db_path):
+    """
+    Aquesta funció actualitza la informació d'un grup existent a la base de dades.
+    Els paràmetres per actualitzar són:
+    - nom_antiga: Nom original del grup a actualitzar.
+    - nom_nova: Nou nom del grup.
+    - any_inici: Nou any de creació.
+    - tipus: Nou tipus de música.
+    - integrants: Nou nombre d'integrants.
+    
+    Un cop actualitzat el grup, s'afegeix un registre de log per confirmar-ho.
+    """
+    # Validar el tipus de música i l'any d'inici
+    if not validar_tipus(tipus) or not validar_any_inici(any_inici):
+        return
 
-    any_inici = validar_enter("Any d'inici (>=1960): ", lambda x: x >= 1960, "L'any d'inici ha de ser igual o superior a 1960.")
-    tipus = validar_text("Tipus de música: ", "El tipus de música no pot estar buit.")
-    membres = validar_enter("Nombre d'integrants (>0): ", lambda x: x > 0, "El nombre d'integrants ha de ser superior a 0.")
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE grups 
+        SET nom = ?, any_inici = ?, tipus = ?, integrants = ? 
+        WHERE nom = ?
+    """, (nom_nova, any_inici, tipus, integrants, nom_antiga))
+    conn.commit()
+    conn.close()
+    logging.info(f"Grup '{nom_antiga}' actualitzat correctament.")
 
-    return nom, any_inici, tipus, membres
+def mostrar_grups(db_path):
+    """
+    Aquesta funció mostra tots els grups musicals emmagatzemats a la base de dades.
+    Utilitza el registre de logs per mostrar la informació de cada grup:
+    - ID
+    - Nom
+    - Any de creació
+    - Tipus de música
+    - Nombre d'integrants
+    
+    Aquesta informació es mostrarà mitjançant un registre de log de nivell INFO.
+    """
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM grups")
+    grups = cursor.fetchall()
+    for grup in grups:
+        logging.info(f"ID: {grup[0]}, Nom: {grup[1]}, Any inici: {grup[2]}, Tipus: {grup[3]}, Integrants: {grup[4]}")
+    conn.close()
 
+def mostrar_menu():
+    """
+    Aquesta funció mostra el menú principal amb les opcions disponibles.
+    """
+    print("\nGestió de Grups Musicals")
+    print("1. Afegir un grup")
+    print("2. Eliminar un grup")
+    print("3. Actualitzar un grup")
+    print("4. Mostrar tots els grups")
+    print("5. Sortir")
 
-def validar_enter(missatge, condicio, error_missatge):
-    """_summary_
-
-    Args:
-        missatge (_type_): _description_
-        condicio (_type_): _description_
-        error_missatge (_type_): _description_
-
-    Raises:
-        ValueError: _description_
-
-    Returns:
-        _type_: _description_
-    """    
-    """Valida que l'entrada sigui un enter i compleixi una condició."""
+def main():
+    """
+    Aquesta funció és el punt d'entrada per executar el programa amb un menú interactiu.
+    """
+    # Defineix el camí de la base de dades (sqlite3)
+    db_path = "grups_musica.db"
+    crear_base_dades(db_path)
+    
     while True:
-        try:
-            valor = int(input(missatge))
-            if not condicio(valor):
-                raise ValueError(error_missatge)
-            return valor
-        except ValueError as e:
-            print(f"Error: {e}")
+        mostrar_menu()
+        opcio = input("Escull una opció: ")
 
-
-def validar_text(missatge, error_missatge):
-    """Valida que l'entrada sigui un text no buit."""
-    while True:
-        valor = input(missatge).strip()
-        if valor:
-            return valor
-        print(error_missatge)
-
-
-def afegir_grup(nom, any_inici, tipus, membres, db_path="grups.db"):
-    """Afegeix un nou grup musical a la base de dades."""
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO grups (nom, any_inici, tipus, membres) VALUES (?, ?, ?, ?)",
-                       (nom, any_inici, tipus, membres))
-        conn.commit()
-        print(f"Grup '{nom}' afegit correctament.")
-    except sqlite3.Error as e:
-        print("Error en afegir grup:", e)
-    finally:
-        conn.close()
-
-
-def eliminar_grup(nom, db_path="grups.db"):
-    """Elimina un grup pel seu nom."""
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM grups WHERE nom = ?", (nom,))
-        if cursor.rowcount == 0:
-            print("No s'ha trobat cap grup amb aquest nom.")
-        else:
-            print("Grup eliminat correctament.")
-        conn.commit()
-    except sqlite3.Error as e:
-        print("Error en eliminar el grup:", e)
-    finally:
-        conn.close()
-
-
-def actualitzar_grup(nom, nou_nom, nou_any, nou_tipus, nous_membres, db_path="grups.db"):
-    """Actualitza les dades d’un grup musical existent."""
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE grups SET nom = ?, any_inici = ?, tipus = ?, membres = ?
-            WHERE nom = ?
-        ''', (nou_nom, nou_any, nou_tipus, nous_membres, nom))
-        if cursor.rowcount == 0:
-            print("No s'ha trobat cap grup amb aquest nom.")
-        else:
-            print("Grup actualitzat correctament.")
-        conn.commit()
-    except sqlite3.Error as e:
-        print("Error en actualitzar el grup:", e)
-    finally:
-        conn.close()
-
-
-def mostrar_grups(db_path="grups.db"):
-    """Mostra tots els grups musicals emmagatzemats."""
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM grups')
-        grups = cursor.fetchall()
-        if grups:
-            for grup in grups:
-                print(f"ID: {grup[0]}, Nom: {grup[1]}, Any inici: {grup[2]}, Tipus: {grup[3]}, Integrants: {grup[4]}")
-        else:
-            print("No hi ha grups a la base de dades.")
-    except sqlite3.Error as e:
-        print("Error en mostrar els grups:", e)
-    finally:
-        conn.close()
-
-
-def consultar_grup_per_nom(nom, db_path="grups.db"):
-    """Consulta i mostra un grup musical pel seu nom."""
-    try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM grups WHERE nom = ?", (nom,))
-        grup = cursor.fetchone()
-        if grup:
-            print(f"ID: {grup[0]}, Nom: {grup[1]}, Any inici: {grup[2]}, Tipus: {grup[3]}, Integrants: {grup[4]}")
-            return grup
-        else:
-            print("No s'ha trobat cap grup amb aquest nom.")
-            return None
-    except sqlite3.Error as e:
-        print("Error en consultar el grup:", e)
-        return None
-    finally:
-        conn.close()
-
-
-def menu():
-    crear_base_dades()
-    while True:
-        print("\n--- Menú ---")
-        print("1. Afegir un nou grup de música")
-        print("2. Mostrar tots els grups de música")
-        print("3. Eliminar un grup")
-        print("4. Actualitzar un grup")
-        print("5. Consultar un grup per nom")
-        print("0. Sortir")
-        opcio = input("Tria una opció: ")
-
-        if opcio == "1":
-            try:
-                nom, any_inici, tipus, membres = intro_dades()
-                afegir_grup(nom, any_inici, tipus, membres)
-            except ValueError as e:
-                print("Error:", e)
-
-        elif opcio == "2":
-            mostrar_grups()
-
-        elif opcio == "3":
+        if opcio == '1':
+            # Afegir un grup
+            nom = input("Nom del grup: ")
+            any_inici = int(input("Any d'inici: "))
+            while True:
+                tipus = input("Tipus de música (pop, trap, rap): ")
+                if validar_tipus(tipus):
+                    break
+            integrants = int(input("Nombre d'integrants: "))
+            afegir_grup(nom, any_inici, tipus, integrants, db_path)
+        
+        elif opcio == '2':
+            # Eliminar un grup
             nom = input("Nom del grup a eliminar: ")
-            eliminar_grup(nom)
-
-        elif opcio == "4":
-            nom = input("Nom del grup a actualitzar: ")
-            try:
-                nou_nom, nou_any, nou_tipus, nous_membres = intro_dades()
-                actualitzar_grup(nom, nou_nom, nou_any, nou_tipus, nous_membres)
-            except ValueError as e:
-                print("Error:", e)
-
-        elif opcio == "5":
-            nom = input("Nom del grup a consultar: ")
-            consultar_grup_per_nom(nom)
-
-        elif opcio == "0":
-            print("Adéu!")
+            eliminar_grup(nom, db_path)
+        
+        elif opcio == '3':
+            # Actualitzar un grup
+            nom_antiga = input("Nom del grup a actualitzar: ")
+            nom_nova = input("Nou nom del grup: ")
+            any_inici = int(input("Nou any d'inici: "))
+            while True:
+                tipus = input("Nou tipus de música (pop, trap, rap): ")
+                if validar_tipus(tipus):
+                    break
+            integrants = int(input("Nou nombre d'integrants: "))
+            actualitzar_grup(nom_antiga, nom_nova, any_inici, tipus, integrants, db_path)
+        
+        elif opcio == '4':
+            # Mostrar tots els grups
+            mostrar_grups(db_path)
+        
+        elif opcio == '5':
+            # Sortir
+            print("Fins aviat!")
             break
+        
         else:
-            print("Opció no vàlida. Torna-ho a provar.")
+            print("Opció no vàlida, torna a intentar-ho.")
 
-
-if __name__ == "__main__":
-    menu()
+if __name__ == '__main__':
+    main()
