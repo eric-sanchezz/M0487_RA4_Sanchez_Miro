@@ -2,7 +2,6 @@ import logging
 import sqlite3
 import os
 
-# Configura el logger
 logging.basicConfig(level=logging.INFO)
 
 def crear_base_dades(db_path):
@@ -59,7 +58,6 @@ def afegir_grup(nom, any_inici, tipus, integrants, db_path):
     
     Després d'afegir el grup, s'afegeix un registre de log per confirmar-ho.
     """
-    # Validar el tipus de música i l'any d'inici
     if not validar_tipus(tipus) or not validar_any_inici(any_inici):
         return
     
@@ -98,7 +96,6 @@ def actualitzar_grup(nom_antiga, nom_nova, any_inici, tipus, integrants, db_path
     
     Un cop actualitzat el grup, s'afegeix un registre de log per confirmar-ho.
     """
-    # Validar el tipus de música i l'any d'inici
     if not validar_tipus(tipus) or not validar_any_inici(any_inici):
         return
 
@@ -148,7 +145,6 @@ def main():
     """
     Aquesta funció és el punt d'entrada per executar el programa amb un menú interactiu.
     """
-    # Defineix el camí de la base de dades (sqlite3)
     db_path = "grups_musica.db"
     crear_base_dades(db_path)
     
@@ -157,7 +153,6 @@ def main():
         opcio = input("Escull una opció: ")
 
         if opcio == '1':
-            # Afegir un grup
             nom = input("Nom del grup: ")
             any_inici = int(input("Any d'inici: "))
             while True:
@@ -168,12 +163,10 @@ def main():
             afegir_grup(nom, any_inici, tipus, integrants, db_path)
         
         elif opcio == '2':
-            # Eliminar un grup
             nom = input("Nom del grup a eliminar: ")
             eliminar_grup(nom, db_path)
         
         elif opcio == '3':
-            # Actualitzar un grup
             nom_antiga = input("Nom del grup a actualitzar: ")
             nom_nova = input("Nou nom del grup: ")
             any_inici = int(input("Nou any d'inici: "))
@@ -185,11 +178,9 @@ def main():
             actualitzar_grup(nom_antiga, nom_nova, any_inici, tipus, integrants, db_path)
         
         elif opcio == '4':
-            # Mostrar tots els grups
             mostrar_grups(db_path)
         
         elif opcio == '5':
-            # Sortir
             print("Fins aviat!")
             break
         
